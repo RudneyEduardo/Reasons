@@ -9,8 +9,8 @@ from typing import Optional, List
 import motor.motor_asyncio
 
 app = FastAPI()
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_URI)
-db = client.deno
+client = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URI"])
+db = client.ReasonsDb
 
 
 class PyObjectId(ObjectId):
@@ -60,8 +60,9 @@ async def create_reason(reason: ReasonModel = Body(...)):
     "/", response_description="Just for test"
 )
 async def test():
-
-    return "Hellou"
+    res = os.environ
+    print(res)
+    return res
     
 @app.get(
     "/all", response_description="List all reasons that were not visited", response_model=List[ReasonModel]
