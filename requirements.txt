@@ -16,7 +16,7 @@ pydantic==1.9.0
 pyflakes==2.2.0
 pymongo==3.11.1
 regex==2020.11.13
-starlette==0.13.6
+starlette==0.14.2
 toml==0.10.2
 typing-extensions==3.7.4.3
 uvicorn==0.12.3
