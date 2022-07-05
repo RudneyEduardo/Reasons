@@ -9,7 +9,7 @@ from typing import Optional, List
 import motor.motor_asyncio
 
 app = FastAPI()
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
+client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_URI)
 db = client.deno
 
 
@@ -61,7 +61,7 @@ async def create_reason(reason: ReasonModel = Body(...)):
 )
 async def test():
 
-    return "Teste"
+    return "Hellou"
     
 @app.get(
     "/all", response_description="List all reasons that were not visited", response_model=List[ReasonModel]
