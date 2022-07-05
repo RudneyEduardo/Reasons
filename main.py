@@ -1,7 +1,7 @@
 import os
 from xmlrpc.client import boolean
 from fastapi import FastAPI, Body, HTTPException, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 from bson import ObjectId
@@ -32,7 +32,7 @@ class PyObjectId(ObjectId):
 class ReasonModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     reason: str = Field(...)
-    visited: bool = Field(...)
+    visited: str = Field(...)
 
     class Config:
         allow_population_by_field_name = True
@@ -57,12 +57,19 @@ async def create_reason(reason: ReasonModel = Body(...)):
 
 
 @app.get(
-    "/", response_description="Just for test"
+    "/", response_class=HTMLResponse
 )
-async def test():
-    res = os.environ
-    print(res)
-    return res
+async def home_page():
+    return """
+    <html>
+        <head>
+            <title>Fast Api Example Test</title>
+        </head>
+        <body>
+            <h1>Look Im Working</h1>
+        </body>
+    </html>
+    """
     
 @app.get(
     "/all", response_description="List all reasons that were not visited", response_model=List[ReasonModel]
