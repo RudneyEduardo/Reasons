@@ -55,9 +55,16 @@ async def create_reason(reason: ReasonModel = Body(...)):
     created_reason = await db["reasons"].find_one({"_id": new_reason.inserted_id})
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_reason)
 
+
+@app.get(
+    "/", response_description="Just for test"
+)
+async def test():
+
+    return "Teste"
     
 @app.get(
-    "/", response_description="List all reasons that were not visited", response_model=List[ReasonModel]
+    "/all", response_description="List all reasons that were not visited", response_model=List[ReasonModel]
 )
 async def list_reasons():
     reasons = await db["reasons"].find().to_list(200)
