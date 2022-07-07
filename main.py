@@ -3,6 +3,7 @@ from xmlrpc.client import boolean
 from fastapi import FastAPI, Body, HTTPException, status
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from bson import ObjectId
 from typing import Optional, List
@@ -13,6 +14,15 @@ client = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URI"])
 db = client.ReasonsDb
 
 
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 class PyObjectId(ObjectId):
     @classmethod
     def __get_validators__(cls):
@@ -44,7 +54,17 @@ class ReasonModel(BaseModel):
                 "visited": "false",
             }
         }
+class UpdateReason(BaseModel):
+    visited: Optional[str]
 
+    class Config:
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
+        schema_extra = {
+            "example": {
+                "visitado": "true",
+            }
+        }
 
 
 
@@ -74,15 +94,33 @@ async def home_page():
 @app.get(
     "/all", response_description="List all reasons that were not visited", response_model=List[ReasonModel]
 )
-async def list_reasons():
+async def list_reasons_not_visited():
     reasons = await db["reasons"].find().to_list(200)
     reasonNotVisited = []
     for i in range(len(reasons)):
         if reasons[i]["visited"] == "false":
             reasonNotVisited.append(reasons[i])
 
-    return reasonNotVisited
+    return JSONResponse(content=reasonNotVisited)
 
+
+@app.put("/{id}", response_description="Update a Reason State", response_model=ReasonModel)
+async def update_student(id: str, reason: UpdateReason = Body(...)):
+    reason = {k: v for k, v in reason.dict().items() if v is not None}
+
+    if len(reason) >= 1:
+        update_result = await db["reasons"].update_one({"_id": id}, {"$set": reason})
+
+        if update_result.modified_count == 1:
+            if (
+                updated_reason := await db["reasons"].find_one({"_id": id})
+            ) is not None:
+                return updated_reason
+
+    if (existing_reason := await db["reasons"].find_one({"_id": id})) is not None:
+        return existing_reason
+
+    raise HTTPException(status_code=404, detail=f"Student {id} not found")
 
 
 
